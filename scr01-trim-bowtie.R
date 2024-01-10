@@ -10,10 +10,10 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "input.yaml"))
+#params <- read_yaml(file.path("meta", "sample_library.yaml")) # For testing keep it commented in production
 
-# Function
-exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir){
+# Functions
+exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, email = NULL){
 
         dir.create(file.path(output_trimmed_dir, d), recursive = TRUE, showWarnings = FALSE)
         count_file <- paste0(d, "_counts.tsv")
@@ -23,7 +23,7 @@ exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_tr
         cat("#!/bin/bash\n")
 
         cat("# Name of job\n")
-        cat("#$ -N ", d,"\n")
+        cat(paste0("#$ -N jid_", d,"\n"))
 
         cat("# Execute script from current working directory\n")
         cat("#$ -cwd\n")
@@ -32,14 +32,18 @@ exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_tr
         cat("#$ -j y", "\n")
 
         cat("# Send the output of the script to a directory called 'UGE-output' in the current working directory (cwd)\n")
-        cat("#$ -o ", hpc_log_dir, "\n")
+        cat("#$ -o", hpc_log_dir, "\n")
 
         cat("# Memory requirements\n")
         cat("#$ -l h_vmem=15G -pe threaded 4\n")
 
-        cat("# Send email when job is submitted and completed\n")
-        cat("#$ -m e\n")
-        cat("#$ -M ", params$email, "\n\n")
+        if(!is.null(email)){
+                cat("# Send email when job is submitted and completed\n")
+                cat("#$ -m e\n")
+                cat("#$ -M", email, "\n")
+        }
+
+        cat("\n")
 
         cat("module load bowtie2\n")
         cat("module load samtools\n")
@@ -48,27 +52,37 @@ exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_tr
         cat("\n")
 
         # Trim using fastx trimmer
-        cat("gunzip -c ", files[1],  " | fastx_trimmer -f 21 -o ", file.path(output_trimmed_dir, d, read1))
+        cat("gunzip -c", files[1],  "| fastx_trimmer -f 21 -o", file.path(output_trimmed_dir, d, read1))
         cat("\n")
-        cat("gunzip -c ", files[2],  " | fastx_trimmer -f 28 -o ", file.path(output_trimmed_dir, d, read2))
+        cat("gunzip -c", files[2],  "| fastx_trimmer -f 28 -o", file.path(output_trimmed_dir, d, read2))
 
         cat("\n\n")
 
-        cat('echo -e "id\\tInput" > ', file.path(output_count_dir, count_file), "\n")
+        cat('echo -e "id\\tInput" >', file.path(output_count_dir, count_file), "\n\n")
 
         # Run bowtie2 and samtools
-        cat("bowtie2 -p 4 -x ", bowtie_index, " -1 ", 
-                   file.path(output_trimmed_dir, d, read1), " -2 ", 
+        cat("bowtie2 -p 4 -x", bowtie_index, "-1", 
+                   file.path(output_trimmed_dir, d, read1), "-2", 
                    file.path(output_trimmed_dir, d, read2),
-                   "| samtools sort -O BAM | samtools depth -aa -m 100000000 - ",
-                   "| awk 'BEGIN {OFS=\"\\t\"} {counts[$1] = ($3 < counts[$1]) ? counts[$1] : $3} END {for (c in counts) {print c, counts[c]}}' ",    
-                   "| sort -k 1 ",
-                   ">> ", file.path(output_count_dir, count_file), "\n")
+                   "| samtools sort -O BAM | samtools depth -aa -m 100000000 -",
+                   "| awk 'BEGIN {OFS=\"\\t\"} {counts[$1] = ($3 < counts[$1]) ? counts[$1] : $3} END {for (c in counts) {print c, counts[c]}}'",    
+                   "| sort -k 1",
+                   ">>", file.path(output_count_dir, count_file), "\n")
 
         sink()
 
-        cat("Submitting the job ...")
+        cat("Submitting the job ... ")
         system(paste0("qsub ", submit_file))
+        cat("\n")
+}
+
+user_input <- function(prompt) {
+  if (interactive()) {
+    return(invisible(readline(prompt)))
+  } else {
+    cat(prompt)
+    return(invisible(readLines("stdin", n=1)))
+  }
 }
 
 # Define input directories
@@ -90,7 +104,7 @@ if(dir.exists(dirname(bowtie_index))){
 output_count_dir <- params$output_count_dir
 if(dir.exists(output_count_dir)){
         cat("Count directory already exists, output maybe over written.: ", output_count_dir, "\n")
-        invisible(readline(prompt="Press [enter] to continue"))
+        user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
         cat("Creating output count dir: ", output_count_dir, "\n")
         dir.create(output_count_dir, recursive = TRUE, showWarnings = FALSE)
@@ -99,7 +113,7 @@ if(dir.exists(output_count_dir)){
 output_trimmed_dir <- params$output_trimmed_dir
 if(dir.exists(output_trimmed_dir)){
         cat("Trimmed data directory already exists, output maybe over written.: ", output_trimmed_dir, "\n")
-        invisible(readline(prompt="Press [enter] to continue"))
+        user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
         cat("Creating trimmed data dir: ", output_trimmed_dir, "\n")
         dir.create(output_trimmed_dir, recursive = TRUE, showWarnings = FALSE)
@@ -108,7 +122,7 @@ if(dir.exists(output_trimmed_dir)){
 submit_scr_dir <- params$submit_scr_dir
 if(dir.exists(submit_scr_dir)){
         cat("Submit script directory already exists, output maybe over written.: ", submit_scr_dir, "\n")
-        invisible(readline(prompt="Press [enter] to continue"))
+        user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
         cat("Creating submit script dir: ", submit_scr_dir, "\n")
         dir.create(submit_scr_dir, recursive = TRUE, showWarnings = FALSE)
@@ -117,7 +131,7 @@ if(dir.exists(submit_scr_dir)){
 hpc_log_dir <- params$hpc_log_dir
 if(dir.exists(hpc_log_dir)){
         cat("HPC log directory already exists, output maybe over written.: ", hpc_log_dir, "\n")
-        invisible(readline(prompt="Press [enter] to continue"))
+        user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
         cat("Creating HPC log dir: ", hpc_log_dir, "\n")
         dir.create(hpc_log_dir, recursive = TRUE, showWarnings = FALSE)
@@ -140,7 +154,7 @@ for(i in 1:length(input_dirs)){
         read2 <- basename(files[2])
         cat("Read 2: ", read2, "\n")
 
-        exec_trim_bowtie(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir)
+        exec_trim_bowtie(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, params$email)
 }
 
 
