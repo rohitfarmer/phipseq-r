@@ -4,6 +4,7 @@
 
 ### Input library
 ```yaml
+type: input_library
 demult_dir: "data/Demultiplexed_Data/Input_Library"
 output_count_dir: "results/Input_Library_Counts"
 output_trimmed_dir: "results/Trimmed_Data"
@@ -15,10 +16,19 @@ email: rohit.farmer@nih.gov
 
 ### Sample library
 ```yaml
+# Inputs
+type: sample
 demult_dir: "data/Demultiplexed_Data/Sample_Data"
-output_count_dir: "results/Sample_Counts"
-output_trimmed_dir: "results/Trimmed_Data"
 index: "index/VirScan_Dereplicated_bowtie_index/VIR3_dereplicated"
+input_library_count_file: "results/Input_Library_Counts/VS_B1_3_counts.tsv"
+
+# Outputs
+output_count_dir: "results/Sample_Counts"
+output_passed_count_dir: "results/Passed_Sample_Counts"
+output_merged_count_dir: "results/Sample_Counts_Merged"
+output_trimmed_dir: "results/Trimmed_Data"
+
+# Submit scripts and logs
 submit_scr_dir: "results/submit-scripts"
 hpc_log_dir: "results/hpc-log"
 email: rohit.farmer@nih.gov 

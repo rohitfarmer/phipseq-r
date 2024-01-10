@@ -13,7 +13,7 @@ params <- read_yaml(file.path(args[1]))
 #params <- read_yaml(file.path("meta", "sample_library.yaml")) # For testing keep it commented in production
 
 # Functions
-exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, email = NULL){
+exec_trim_bowtie <- function(type, d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, email = NULL){
 
         dir.create(file.path(output_trimmed_dir, d), recursive = TRUE, showWarnings = FALSE)
         count_file <- paste0(d, "_counts.tsv")
@@ -58,7 +58,11 @@ exec_trim_bowtie <- function(d, files, read1, read2, output_count_dir, output_tr
 
         cat("\n\n")
 
-        cat('echo -e "id\\tInput" >', file.path(output_count_dir, count_file), "\n\n")
+        if(type == "input_library"){
+                cat('echo -e "id\\tInput" >', file.path(output_count_dir, count_file), "\n\n")
+        }else if(type == "sample"){
+                cat(paste0('echo -e "id\\t', d, '" > ', file.path(output_count_dir, count_file)), "\n\n")
+        }
 
         # Run bowtie2 and samtools
         cat("bowtie2 -p 4 -x", bowtie_index, "-1", 
@@ -154,7 +158,7 @@ for(i in 1:length(input_dirs)){
         read2 <- basename(files[2])
         cat("Read 2: ", read2, "\n")
 
-        exec_trim_bowtie(d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, params$email)
+        exec_trim_bowtie(params$type, d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, params$email)
 }
 
 
