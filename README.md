@@ -48,6 +48,8 @@ module load R/4.3.1
 Rscript --vanilla phipseq-r/scr01-trim-bowtie.R meta/input.yaml
 ```
 
+> For the scripts below **claim an interactive node** with as many cores as possible. Both the scripts can perform multithreaded parallel computation. 
+
 ### To perform sample filter and merge
 ```bash
 module load R/4.3.1

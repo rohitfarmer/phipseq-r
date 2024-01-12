@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 if (!require('yaml')) install.packages('yaml'); library('yaml')
+if (!require('doMC')) install.packages('doMC'); library('doMC')
 
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args) == 0){
@@ -20,7 +21,12 @@ filter_reads <- function(output_count_dir, output_passed_count_dir){
         files <- list.files(path = file.path(output_count_dir), full.names = TRUE)
 
         # Looping through files
-        for (f in files) {
+        cores <-  detectCores()
+        if(cores == 1){
+                registerDoMC(1)
+        } else registerDoMC(cores)
+        bh <- foreach (i =1:length(files)) %dopar% {
+                f <- files[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files (similar to startswith('.') in Python)
                         name <- tools::file_path_sans_ext(basename(f))
                         cat("Sample:",name, "\n")
@@ -50,7 +56,12 @@ merge_counts <- function(output_passed_count_dir, output_merged_count_dir, input
         dir_list <- list.files(path = file.path(output_passed_count_dir), pattern = "*.tsv", full.names = TRUE)
 
         # Looping through the files
-        for (f in dir_list) {
+        cores <-  detectCores()
+        if(cores == 1){
+                registerDoMC(1)
+        } else registerDoMC(cores)
+        bh <- foreach (i = 1:length(dir_list)) %dopar% {
+                f <- dir_list[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files
                         name <- tools::file_path_sans_ext(basename(f))
                         cat("Passed sample:",name, "\n")
