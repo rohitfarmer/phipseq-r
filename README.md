@@ -45,7 +45,14 @@ There is only one dependency of this script `yaml` which will be installed if it
 
 ```bash
 module load R/4.3.1
-Rscript --vanilla phipseq-r/scr01-trim-bowtie.R meta/input.yaml
+Rscript --vanilla phipseq-r/scr01-00-trim-bowtie.R meta/input.yaml
+```
+
+#### To plot overall Bowtie alignment rate
+Fetch Bowtie alignment rate from the HPC log files to plot a histogram and save the data as a TSV file. 
+```bash
+module load R/4.3.1
+Rscript --vanilla phipseq-r/scr01-01-bowtie-ali-rate-plot.R
 ```
 
 > For the scripts below **claim an interactive node** with as many cores as possible. Both the scripts can perform multithreaded parallel computation. 
@@ -53,11 +60,11 @@ Rscript --vanilla phipseq-r/scr01-trim-bowtie.R meta/input.yaml
 ### To perform sample filter and merge
 ```bash
 module load R/4.3.1
-Rscript --vanilla phipseq-r/scr02-filter-merge.R meta/sample_library.yaml
+Rscript --vanilla phipseq-r/scr02-00-filter-merge.R meta/sample_library.yaml
 ```
 
 ### To perform phipstat normalization
 ```bash
 module load R/4.3.1
-Rscript --vanilla phipseq-r/scr03-phipstat-normalize.R
+Rscript --vanilla phipseq-r/scr03-00-phipstat-normalize.R
 ```
