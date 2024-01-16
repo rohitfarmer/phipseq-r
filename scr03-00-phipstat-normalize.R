@@ -5,7 +5,7 @@ if (!require('yaml')) install.packages('yaml'); library('yaml')
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args) == 0){
         cat("Please provide a YAML file. \n")
-        cat("Usage: Rscript --vanilla scr02-filter-merge.R sample_library.yaml \n")
+        cat("Usage: Rscript --vanilla scr03-00-phipstat-normalize.R sample_library.yaml \n")
         stop()
 }
 
