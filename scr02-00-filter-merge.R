@@ -22,9 +22,7 @@ filter_reads <- function(output_count_dir, output_passed_count_dir){
 
         # Looping through files
         cores <-  detectCores()
-        if(cores == 1){
-                registerDoMC(1)
-        } else registerDoMC(cores)
+        registerDoMC(cores)
         bh <- foreach (i =1:length(files)) %dopar% {
                 f <- files[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files (similar to startswith('.') in Python)
@@ -57,9 +55,7 @@ merge_counts <- function(output_passed_count_dir, output_merged_count_dir, input
 
         # Looping through the files
         cores <-  detectCores()
-        if(cores == 1){
-                registerDoMC(1)
-        } else registerDoMC(cores)
+        registerDoMC(cores)
         bh <- foreach (i = 1:length(dir_list)) %dopar% {
                 f <- dir_list[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files
