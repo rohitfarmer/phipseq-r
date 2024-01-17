@@ -4,36 +4,55 @@
 
 ### Input library
 ```yaml
-type: input_library
-demult_dir: "data/Demultiplexed_Data/Input_Library"
-output_count_dir: "results/Input_Library_Counts"
-output_trimmed_dir: "results/Trimmed_Data"
-index: "index/VirScan_Dereplicated_bowtie_index/VIR3_dereplicated"
-submit_scr_dir: "results/submit-scripts"
-hpc_log_dir: "results/hpc-log"
+# Inputs
+type: input_library # [input_library, sample, ntc]. Sample inlucde study samples, anchors, and mocks.
+demult_dir: "data/AACFV5MHV/Input"
+index: "index/PanCov_PanicPotV2_Controls/PanCoV_PPV2_Controls"
+
+# Outputs
+output_count_dir: "results/input-library/counts"
+output_trimmed_dir: "results/input-library/trimmed-data"
+
+# Figures
+figures_dir: "figures/input_library"
+
+# Submit scripts and logs
+submit_scr_dir: "results/input-library/submit-scripts"
+hpc_log_dir: "results/input-library/hpc-log"
+
+## Leave email blank if you prefer not to receive emails from the HPC
 email: rohit.farmer@nih.gov
 ```
 
 ### Sample library
+For all the other types of samples excluding the input library.
+
 ```yaml
 # Inputs
-type: sample
-demult_dir: "data/Demultiplexed_Data/Sample_Data"
-index: "index/VirScan_Dereplicated_bowtie_index/VIR3_dereplicated"
-input_library_count_file: "results/Input_Library_Counts/VS_B1_3_counts.tsv"
+type: sample # [input_library, sample, ntc]. Sample inlucde study samples, anchors, and mocks.
+demult_dir: "data/AACFV5MHV/EVD68_Sample"
+index: "index/PanCov_PanicPotV2_Controls/PanCoV_PPV2_Controls"
+input_library_count_file: "results/input-library-counts/input-counts-avg.tsv"
 
 # Outputs
-output_count_dir: "results/Sample_Counts"
-output_passed_count_dir: "results/Passed_Sample_Counts"
-output_merged_count_dir: "results/Sample_Counts_Merged"
-output_trimmed_dir: "results/Trimmed_Data"
-output_generalized_poisson_p_vals_dir: "results/Generalized_Poisson_P_Vals"
-output_generalized_poisson_scores_dir: "results/Generalized_Poisson_Scores"
-output_normalized_sample_counts_dir: "results/Normalized_Sample_Counts"
+## Replace "sample" with anchor/mocks/ntc to segregate output in their respective folders
+
+output_count_dir: "results/sample/counts"
+output_passed_count_dir: "results/sample/counts-passed"
+output_merged_count_dir: "results/sample/counts-merged"
+output_trimmed_dir: "results/sample/trimmed-data"
+output_generalized_poisson_p_vals_dir: "results/sample/generalized-poisson-p-vals"
+output_generalized_poisson_scores_dir: "results/sample/generalized-poisson-scores"
+output_normalized_counts_dir: "results/sample/normalized-counts"
+
+## Figures
+figures_dir: "figures/sample"
 
 # Submit scripts and logs
-submit_scr_dir: "results/submit-scripts"
-hpc_log_dir: "results/hpc-log"
+submit_scr_dir: "results/sample/submit-scripts"
+hpc_log_dir: "results/sample/hpc-log"
+
+## Leave email blank if you prefer not to receive emails from the HPC
 email: rohit.farmer@nih.gov 
 ```
 
@@ -45,17 +64,29 @@ There is only one dependency of this script `yaml` which will be installed if it
 
 ```bash
 module load R/4.3.1
-Rscript --vanilla phipseq-r/scr01-00-trim-bowtie.R meta/input.yaml
+Rscript --vanilla phipseq-r/scr01-00-trim-bowtie.R meta/file.yaml
 ```
 
-#### To plot overall Bowtie alignment rate
-Fetch Bowtie alignment rate from the HPC log files to plot a histogram and save the data as a TSV file. 
+> For the scripts below **claim an interactive node** with as many cores as possible. Both the scripts can perform multithreaded parallel computation.
+
+#### To plot overall Bowtie alignment rate (optional)
+Fetch Bowtie alignment rate from the HPC log files to plot a histogram and save the data as a TSV file. This script only make sense for sample data.
 ```bash
 module load R/4.3.1
-Rscript --vanilla phipseq-r/scr01-01-bowtie-ali-rate-plot.R
+Rscript --vanilla phipseq-r/scr01-01-bowtie-ali-rate-plot.R meta/sample_library.yaml
 ```
 
-> For the scripts below **claim an interactive node** with as many cores as possible. Both the scripts can perform multithreaded parallel computation. 
+#### To plot pre-normalized counts distribution per sample (optional)
+```bash
+module load R/4.3.1
+Rscript --vanilla phipseq-r/scr01-02-counts-dist.R meta/sample_library.yaml
+```
+
+#### To average counts if there are more than one input libraries (case based)
+```bash
+module load R/4.3.1
+Rscript --vanilla phipseq-r/scr01-03-input-counts-avg.R meta/input_library.yaml
+```
 
 ### To perform sample filter and merge
 ```bash

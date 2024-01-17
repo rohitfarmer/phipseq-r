@@ -47,29 +47,29 @@ output_merged_count_dir <- params$output_merged_count_dir
 # Create folders
 output_generalized_poisson_p_vals_dir <- params$output_generalized_poisson_p_vals_dir
 if(dir.exists(output_generalized_poisson_p_vals_dir)){
-        cat("Count directory already exists, output maybe over written.: ", output_generalized_poisson_p_vals_dir, "\n")
+        cat("Output directory already exists, output maybe over written.: ", output_generalized_poisson_p_vals_dir, "\n")
         user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
-        cat("Creating output count dir: ", output_generalized_poisson_p_vals_dir, "\n")
+        cat("Creating output dir: ", output_generalized_poisson_p_vals_dir, "\n")
         dir.create(output_generalized_poisson_p_vals_dir, recursive = TRUE, showWarnings = FALSE)
 }
 
 output_generalized_poisson_scores_dir <- params$output_generalized_poisson_scores_dir
 if(dir.exists(output_generalized_poisson_scores_dir)){
-        cat("Count directory already exists, output maybe over written.: ", output_generalized_poisson_scores_dir, "\n")
+        cat("Output directory already exists, output maybe over written.: ", output_generalized_poisson_scores_dir, "\n")
         user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
-        cat("Creating output count dir: ", output_generalized_poisson_scores_dir, "\n")
+        cat("Creating output dir: ", output_generalized_poisson_scores_dir, "\n")
         dir.create(output_generalized_poisson_scores_dir, recursive = TRUE, showWarnings = FALSE)
 }
 
-output_normalized_sample_counts_dir <- params$output_normalized_sample_counts_dir
-if(dir.exists(output_normalized_sample_counts_dir)){
-        cat("Count directory already exists, output maybe over written.: ", output_normalized_sample_counts_dir, "\n")
+output_normalized_counts_dir <- params$output_normalized_counts_dir
+if(dir.exists(output_normalized_counts_dir)){
+        cat("Output directory already exists, output maybe over written.: ", output_normalized_counts_dir, "\n")
         user_input("Press [enter] to continue or [ctrl+z] to quit.")
 }else{
-        cat("Creating output count dir: ", output_normalized_sample_counts_dir, "\n")
-        dir.create(output_normalized_sample_counts_dir, recursive = TRUE, showWarnings = FALSE)
+        cat("Creating output dir: ", output_normalized_counts_dir, "\n")
+        dir.create(output_normalized_counts_dir, recursive = TRUE, showWarnings = FALSE)
 }
 
 # Processing files in Sample_Counts_Merged directory
@@ -83,11 +83,11 @@ for (i in 1:length(files)) {
         cat("Normalizing sample: ", f, "\n")
         norm_count_cmd <- paste("module load phipstat\n", "phip normalize-counts -i", 
                                 shQuote(file.path(files[i])), "-o", 
-                                shQuote(file.path(output_normalized_sample_counts_dir, paste0(f, ".tsv"))), 
+                                shQuote(file.path(output_normalized_counts_dir, paste0(f, ".tsv"))), 
                                 "-m col-sum")
         system(norm_count_cmd)
         
-        normalized_data_file <- file.path(output_normalized_sample_counts_dir, paste0(f, ".tsv"))
+        normalized_data_file <- file.path(output_normalized_counts_dir, paste0(f, ".tsv"))
         normalized_data_rounded <- norm_round(normalized_data_file)
         write.table(normalized_data_rounded, file = normalized_data_file, 
                     sep = "\t", row.names = FALSE, quote = FALSE)

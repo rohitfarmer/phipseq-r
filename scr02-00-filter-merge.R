@@ -11,7 +11,7 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "sample_library.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "ntc_library.yaml")) # For testing keep it commented in production
 
 # Functions
 
@@ -95,16 +95,20 @@ output_count_dir <- params$output_count_dir
 
 input_library_count_file <- params$input_library_count_file
 
+type <- params$type
 
 # Create folders
-output_passed_count_dir <- params$output_passed_count_dir
-if(dir.exists(output_passed_count_dir)){
-        cat("Count directory already exists, output maybe over written.: ", output_passed_count_dir, "\n")
-        user_input("Press [enter] to continue or [ctrl+z] to quit.")
-}else{
-        cat("Creating output count dir: ", output_passed_count_dir, "\n")
-        dir.create(output_passed_count_dir, recursive = TRUE, showWarnings = FALSE)
+if(type != "ntc"){
+        output_passed_count_dir <- params$output_passed_count_dir
+        if(dir.exists(output_passed_count_dir)){
+                cat("Count directory already exists, output maybe over written.: ", output_passed_count_dir, "\n")
+                user_input("Press [enter] to continue or [ctrl+z] to quit.")
+        }else{
+                cat("Creating output count dir: ", output_passed_count_dir, "\n")
+                dir.create(output_passed_count_dir, recursive = TRUE, showWarnings = FALSE)
+        }
 }
+
 
 output_merged_count_dir <- params$output_merged_count_dir
 if(dir.exists(output_merged_count_dir)){
@@ -116,8 +120,12 @@ if(dir.exists(output_merged_count_dir)){
 }
 
 # Filter reads
-filter_reads(output_count_dir, output_passed_count_dir)
-merge_counts(output_passed_count_dir, output_merged_count_dir, input_library_count_file)
+if(type == "ntc"){
+        merge_counts(output_count_dir, output_merged_count_dir, input_library_count_file)
+} else{
+        filter_reads(output_count_dir, output_passed_count_dir)
+        merge_counts(output_passed_count_dir, output_merged_count_dir, input_library_count_file)
+}
 
 
 
