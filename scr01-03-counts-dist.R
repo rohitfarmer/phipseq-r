@@ -39,14 +39,13 @@ if(dir.exists(figures_dir)){
 count_files <- list.files(file.path(params$output_count_dir), pattern = ".tsv",
                           full.names = TRUE)
 
-type <- params$type
-
 cores <-  detectCores()
 registerDoMC(cores)
 bh <- foreach(i = 1:length(count_files)) %dopar%{
         f <- count_files[i]
         df_counts <- read.csv2(f, sep = "\t", header = TRUE, check.names = FALSE)
         non_zero_counts <- df_counts[df_counts[2] != 0,][[2]]
+        non_zero_perc <- round((length(non_zero_counts)/nrow(df_counts)) * 100, 2)
         min_c <- min(non_zero_counts)
         max_c <- max(non_zero_counts)
         median_c <- median(non_zero_counts)
@@ -59,9 +58,9 @@ bh <- foreach(i = 1:length(count_files)) %dopar%{
         plot_file <- file.path(figures_dir, paste0(tools::file_path_sans_ext(basename(f)), ".png"))
         cat("Generating:", i, ":", plot_file, "\n")
         png(filename = plot_file, width = 7 * 300, height = 5 * 300, res = 300)
-        hist(plot_dat,                    
+        hist(plot_dat, freq = TRUE,                    
              main = paste0(tools::file_path_sans_ext(basename(f)), 
-                           "\nnon-zero-counts: ", length(non_zero_counts),"/",nrow(df_counts),
+                           "\nnon zero counts perc: ", non_zero_perc, "%",
                            "\nmin: ", min_c, 
                            "; max: ", max_c,
                            "; mean: ", round(mean_c,2),
@@ -72,7 +71,18 @@ bh <- foreach(i = 1:length(count_files)) %dopar%{
              col = "#009E73",
              border = "black")
         abline(v = c(mean_c, median_c), col = c('black', 'blue'), lwd = 2, lty = 'dashed')
-
         dev.off()
+        
+        plot_file <- file.path(figures_dir, paste0(tools::file_path_sans_ext(basename(f)), "-density.png"))
+        cat("Generating:", i, ":", plot_file, "\n")
+        png(filename = plot_file, width = 7 * 300, height = 5 * 300, res = 300)
+        density_data <- density(non_zero_counts)
+        plot(density_data, main=tools::file_path_sans_ext(basename(f)), 
+             xlab="Non Zero Counts", 
+             ylab="Density", 
+             type="n") # 'type="n"' creates an empty plot with axes, labels, etc.
+        polygon(density_data, col="lightblue", border="black")
+        dev.off()
+
 }
 
