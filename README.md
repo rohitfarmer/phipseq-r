@@ -6,7 +6,7 @@
 ```yaml
 # Inputs
 type: input_library # [input_library, sample, ntc]. Sample inlucde study samples, anchors, and mocks.
-demult_dir: "data/AACFV5MHV/Input"
+demult_dir: "data/AACFV5MHV/Input"  # The terminal folder in the path should lead to sub folders per sample. These subfolders should have two FASTQ files with forward and reverse reads.
 index: "index/PanCov_PanicPotV2_Controls/PanCoV_PPV2_Controls"
 
 # Outputs
