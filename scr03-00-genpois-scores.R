@@ -2,7 +2,7 @@
 
 if (!require('yaml')) install.packages('yaml'); library('yaml')
 if (!require('doMC')) install.packages('doMC'); library('doMC')
-if (!require('stat')) install.packages('stat'); library('stat')
+if (!require('stats')) install.packages('stats'); library('stats')
 
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -13,13 +13,13 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-params <- read_yaml(file.path("meta", "sample_library_mystat.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "sample_library_mystat.yaml")) # For testing keep it commented in production
 
 
 # Functions
 lt1 <- 1.0 - .Machine$double.eps
 
-gp.mle <- function(y) {
+gp_mle <- function(y) {
 
   fun <- function(par, y, y1, n, sy) {
     theta <- exp( par[1] ) ;  lambda <- 1 / ( 1 + exp(- par[2]) )
@@ -73,7 +73,7 @@ estimate_gp_distributions <- function(input_counts, output_counts, uniq_input_va
                 curr_counts <- output_counts[input_counts == input_value, 1]
                 if (length(curr_counts) < 50) next
 
-                gp_mle_res <- gp.mle(curr_counts)
+                gp_mle_res <- gp_mle(curr_counts)
                 cat("The result is:", input_value, gp_mle_res, "\n")
                 lambda <- gp_mle_res[["lambda"]]
                 theta <- gp_mle_res[["theta"]]
@@ -166,7 +166,6 @@ output_normalized_counts_dir <- params$output_normalized_counts_dir
 
 # Create folders
 output_generalized_poisson_p_vals_dir <- params$output_generalized_poisson_p_vals_dir
-#output_generalized_poisson_p_vals_dir <- file.path(dirname(params$output_generalized_poisson_p_vals_dir), "generalized-poisson-p-vals-mysatat")
 
 if(dir.exists(output_generalized_poisson_p_vals_dir)){
         cat("Output directory already exists, output maybe over written.: ", output_generalized_poisson_p_vals_dir, "\n")
@@ -183,7 +182,6 @@ null_out <- foreach(file_i = 1:length(files)) %dopar% {
         input <- files[file_i]
         cat("Processing:", basename(input), "\n")
         input_dat <- read.table(input, header=TRUE, sep="\t", stringsAsFactors=FALSE, check.names = FALSE)
-        #input_dat <- arrow::read_feather(input)
 
         # Extract clones, input counts, and output counts
         input_counts <- as.integer(input_dat[,2])
@@ -214,7 +212,5 @@ null_out <- foreach(file_i = 1:length(files)) %dopar% {
 
         write.table(output_dat, file = output_file_name, 
                     sep = "\t", row.names = FALSE, quote = FALSE)
-        #arrow::write_feather(output_dat, output_file_name)
-
 }
 
