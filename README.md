@@ -111,13 +111,13 @@ module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-01-normalize.R sample_library.yaml
 ```
 
-### 4. To conduct generalized Poisson modeling 
+### 3. To conduct generalized Poisson modeling 
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr03-00-genpoise-scores.R sample_library.yaml
 ```
 
-#### 5. To merge per sample generalized Poisson modeling scores into a single dataframe
+#### 3.1. To merge per sample generalized Poisson modeling scores into a single dataframe
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr03-01-merge-genpois-scores.R sample_library.yaml
