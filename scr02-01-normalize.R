@@ -49,11 +49,17 @@ null_out <- foreach(file_i = 1:length(files)) %dopar% {
         cat("Processing:", basename(input), "\n")
         input_dat <- read.table(input, header=TRUE, sep="\t", stringsAsFactors=FALSE, check.names = FALSE)
 
-        numeric_cols <- sapply(input_dat, is.numeric)
-        input_dat[numeric_cols] <- round(input_dat[numeric_cols] / (colSums(input_dat[numeric_cols]) / 1e6))
+        col1 <- input_dat[[2]] / (sum(input_dat[[2]]) / 1e6)
+        col1 <- round(col1)
+
+        col2 <- input_dat[[3]] / (sum(input_dat[[3]]) / 1e6)
+        col2 <- round(col2)
+
+        output_dat <- data.frame(input_dat[[1]], col1, col2)
+        colnames(output_dat) <- colnames(input_dat)
 
         output_file_name <- file.path(output_normalized_counts_dir, paste0(tools::file_path_sans_ext(basename(input)), "_normalized.tsv"))
-        write.table(input_dat, file = output_file_name, 
+        write.table(output_dat, file = output_file_name, 
                     sep = "\t", row.names = FALSE, quote = FALSE)
 }
 
