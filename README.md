@@ -105,7 +105,7 @@ Rscript --vanilla phipseq-r/phipstat/scr03-00-phipstat-normalize.R sample_librar
 **OR**
 
 
-### 2.1. To perform normaliztion on filtered and merged data
+#### 2.1. To perform normaliztion on filtered and merged data
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-01-normalize.R sample_library.yaml
