@@ -74,7 +74,7 @@ estimate_gp_distributions <- function(input_counts, output_counts, uniq_input_va
                 if (length(curr_counts) < 50) next
 
                 gp_mle_res <- gp_mle(curr_counts)
-                cat("The result is:", input_value, gp_mle_res, "\n")
+                #cat("The result is:", input_value, gp_mle_res, "\n")
                 lambda <- gp_mle_res[["lambda"]]
                 theta <- gp_mle_res[["theta"]]
                 temp_df <- data.frame("idxs" = input_value, "theta" = theta, "lambda" = lambda)
