@@ -95,7 +95,7 @@ module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-00-filter-merge.R meta/sample_library.yaml
 ```
 
-### 3. To perform phipstat normalization and generalized Poisson modeling (deprecated) 
+### 3. To perform phipstat normalization and generalized Poisson modeling
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/phipstat/scr03-00-phipstat-normalize.R sample_library.yaml
@@ -111,7 +111,7 @@ module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-01-normalize.R sample_library.yaml
 ```
 
-### 3. To conduct generalized Poisson modeling 
+### 3. To conduct generalized Poisson modeling (alternative for PanPox library)
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr03-00-genpoise-scores.R sample_library.yaml
