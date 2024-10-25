@@ -10,7 +10,7 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "sample_library_mystat.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "virscan_sample_library_r.yaml")) # For testing keep it commented in production
 
 
 # Functions

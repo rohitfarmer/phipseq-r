@@ -11,7 +11,7 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "ntc_library.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "virscan_mock_library.yaml")) # For testing keep it commented in production
 
 # Functions
 
@@ -27,7 +27,7 @@ filter_reads <- function(output_count_dir, output_passed_count_dir){
                 f <- files[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files (similar to startswith('.') in Python)
                         name <- tools::file_path_sans_ext(basename(f))
-                        cat("Sample:",name, "\n")
+                        cat(i,"Sample:",name, "\n")
 
                         # Reading the tab-separated file
                         sample_counts <- read.csv2(f, sep = "\t", header = TRUE, check.names = FALSE)
@@ -60,7 +60,7 @@ merge_counts <- function(output_passed_count_dir, output_merged_count_dir, input
                 f <- dir_list[i]
                 if (!grepl("^\\.", basename(f))) { # Excluding hidden files
                         name <- tools::file_path_sans_ext(basename(f))
-                        cat("Passed sample:",name, "\n")
+                        cat(1, "Passed sample:",name, "\n")
 
                         # Reading the input library counts
                         input_counts <- read.csv2(file.path(input_library_count_file), 

@@ -8,16 +8,16 @@ if (!require('stats')) install.packages('stats'); library('stats')
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args) == 0){
         cat("Please provide a YAML file. \n")
-        cat("Usage: Rscript --vanilla scr04-00-enrichment-scores.R sample_library.yaml \n")
+        cat("Usage: Rscript --vanilla scr03-00-genpois-scores.R sample_library.yaml \n")
         stop()
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "sample_library_mystat.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "virscan_sample_library_r.yaml")) # For testing keep it commented in production
 
 
 # Functions
-lt1 <- 1.0 - .Machine$double.eps
+#lt1 <- 1.0 - .Machine$double.eps
 
 gp_mle <- function(y) {
 
@@ -39,6 +39,7 @@ gp_mle <- function(y) {
   f <- 1 - sqrt(my / s2)
 
   lamb_check <- f / (1 - f)
+  #cat("sy:", sy, "n:", n, "my:", my, "s2:", s2, "y1:", y1, "f:",  f, "Lamb check:", lamb_check, "\n")
   if(lamb_check > 0){
           lambda <- log(f / (1 - f))
           ini <- c( theta, lambda )
@@ -71,6 +72,7 @@ estimate_gp_distributions <- function(input_counts, output_counts, uniq_input_va
         uniq_input_values <- sort(uniq_input_values)
         for (input_value in uniq_input_values) {
                 curr_counts <- output_counts[input_counts == input_value, 1]
+                curr_counts <- na.omit(curr_counts) ## fix na?
                 if (length(curr_counts) < 50) next
 
                 gp_mle_res <- gp_mle(curr_counts)
@@ -188,7 +190,7 @@ null_out <- foreach(file_i = 1:length(files)) %dopar% {
         output_counts <- as.matrix(input_dat[, -c(1, 2)]) + 1 # Adding pseudocounts
 
         # Estimate generalized Poisson distributions for every input count
-        uniq_input_values <- unique(input_counts)
+        uniq_input_values <- na.omit(unique(input_counts))
         distribution_results <- estimate_gp_distributions(input_counts, output_counts, uniq_input_values)
         distribution_results <- na.omit(distribution_results)
 
