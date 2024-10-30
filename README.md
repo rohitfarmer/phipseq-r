@@ -61,7 +61,7 @@ email: rohit.farmer@nih.gov
 ## Scripts
 **Note: Since the input and output folder paths are relative to the project root folder, always execute the scripts from the project root folder.**
 
-### To perform sequence trimming and the Bowtie alignment
+### 1. To perform sequence trimming and the Bowtie alignment
 
 ```bash
 module load R/4.3.1
@@ -70,54 +70,51 @@ Rscript --vanilla phipseq-r/scr01-00-trim-bowtie.R meta/file.yaml
 
 **Note:** For the scripts below *claim an interactive node* with as many cores as possible to take advantage of multithreaded computing. 
 
-#### 1. To plot overall Bowtie alignment rate (QC)
-Fetch Bowtie alignment rate from the HPC log files to plot a histogram and save the data as a TSV file. This script only make sense for sample data.
-```bash
-module load R/4.3.1
-Rscript --vanilla phipseq-r/scr01-01-bowtie-ali-rate-plot.R meta/sample_library.yaml
-```
-
-#### 1.1. To average counts if there are more than one input libraries (case based)
+### 2. Case based: to average counts if there are more than one input libraries
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr01-02-input-counts-avg.R meta/input_library.yaml
 ```
 
-#### 1.2. To plot pre-normalized counts distribution per sample (QC)
+### 3.1 QC: to plot overall Bowtie alignment rate
+Fetch Bowtie alignment rate from the HPC log files to plot a histogram and save the data as a TSV file. This script only make sense for sample data.
+
+```bash
+module load R/4.3.1
+Rscript --vanilla phipseq-r/scr01-01-bowtie-ali-rate-plot.R meta/sample_library.yaml
+```
+
+### 3.2 QC: to plot pre-normalized counts distribution per sample
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr01-03-counts-dist.R meta/sample_library.yaml
 ```
 
-### 2. To perform sample filtering and merge
+### 4. To perform sample filtering and merge
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-00-filter-merge.R meta/sample_library.yaml
 ```
 
-### 3. To perform phipstat normalization and generalized Poisson modeling
+### 5. To perform phipi-stat normalization and generalized Poisson modeling
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/phipstat/scr03-00-phipstat-normalize.R sample_library.yaml
 ```
 
-
-**OR**
-
-
-#### 2.1. To perform normaliztion on filtered and merged data
+### 6. Case based: To perform non phip-stat normaliztion on filtered and merged data
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr02-01-normalize.R sample_library.yaml
 ```
 
-### 3. To conduct generalized Poisson modeling (alternative for PanPox library)
+### 7. Case based: to conduct generalized Poisson modeling (alternative for PanPox library)
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr03-00-genpoise-scores.R sample_library.yaml
 ```
 
-#### 3.1. To merge per sample generalized Poisson modeling scores into a single dataframe
+### 8 To merge per sample generalized Poisson modeling scores into a single dataframe
 ```bash
 module load R/4.3.1
 Rscript --vanilla phipseq-r/scr03-01-merge-genpois-scores.R sample_library.yaml

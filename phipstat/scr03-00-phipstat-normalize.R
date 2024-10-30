@@ -75,13 +75,16 @@ if(dir.exists(output_normalized_counts_dir)){
 # Processing files in Sample_Counts_Merged directory
 files <- list.files(path = output_merged_count_dir, full.names = TRUE, pattern = "*.tsv")
 
+container <- "/data/vrc_his/douek_lab/premise-bioinfo/containers/phipseq/phipstat-pipeline.sif"
+
 for (i in 1:length(files)) {
         f <- files[i]
         f <- tools::file_path_sans_ext(basename(f))
 
         # Normalizing counts
         cat("Normalizing sample: ", f, "\n")
-        norm_count_cmd <- paste("module load phipstat\n", "phip normalize-counts -i", 
+        norm_count_cmd <- paste('singularity exec --bind "$PWD"', container,
+                                "phip normalize-counts -i", 
                                 shQuote(file.path(files[i])), "-o", 
                                 shQuote(file.path(output_normalized_counts_dir, paste0(f, ".tsv"))), 
                                 "-m col-sum")
@@ -94,16 +97,16 @@ for (i in 1:length(files)) {
 
         # Compute p-values
         cat("Computing p-values for sample: ", f, "\n")
-        phip_p_cmd <- paste0("module load phipstat\n", "phip compute-pvals -i ", 
-                             shQuote(normalized_data_file), " -o ", 
+        phip_p_cmd <- paste('singularity exec --bind "$PWD"', container, "phip compute-pvals -i", 
+                             shQuote(normalized_data_file), "-o", 
                              shQuote(file.path(output_generalized_poisson_p_vals_dir, paste0(f, "_mlxp.tsv"))))
         system(phip_p_cmd)
 }
 
 # Merging columns
 cat("Merging phipstat results ...\n")
-merge_cmd <- paste0("module load phipstat\n", "phip merge-columns -i ", output_generalized_poisson_p_vals_dir, " -o ", 
-                    file.path(output_generalized_poisson_scores_dir, "general_mlxp.tsv")," -p 1")
+merge_cmd <- paste('singularity exec --bind "$PWD"', container, "phip merge-columns -i", output_generalized_poisson_p_vals_dir, "-o", 
+                    file.path(output_generalized_poisson_scores_dir, "general_mlxp.tsv"),"-p 1")
 system(merge_cmd)
 
 
