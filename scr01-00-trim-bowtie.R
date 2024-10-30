@@ -10,7 +10,7 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "sample_library.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "evd68-sky", "anchor.yaml")) # For testing keep it commented in production
 
 # Functions
 exec_trim_bowtie <- function(type, d, files, read1, read2, output_count_dir, output_trimmed_dir, submit_scr_dir, hpc_log_dir, email = NULL){
@@ -22,39 +22,40 @@ exec_trim_bowtie <- function(type, d, files, read1, read2, output_count_dir, out
         sink(submit_file)
         cat("#!/bin/bash\n")
 
-        cat("# Name of job\n")
-        cat(paste0("#$ -N jid_", d,"\n"))
+        cat("# Job name\n")
+        cat(paste0("#SBATCH --job-name=", d,"\n"))
 
-        cat("# Execute script from current working directory\n")
-        cat("#$ -cwd\n")
+        cat("# Job (logs and screen output) output location and file name\n")
+        cat(paste0('#SBATCH --output=', file.path(hpc_log_dir, paste0(d,".txt")), '\n'))
 
-        cat("# Merge the output of the script, and any error messages generated to one file\n")
-        cat("#$ -j y", "\n")
+        cat("# Number of tasks\n")
+        cat("#SBATCH --ntasks=1\n")
 
-        cat("# Send the output of the script to a directory called 'UGE-output' in the current working directory (cwd)\n")
-        cat("#$ -o", hpc_log_dir, "\n")
+        cat("# Number of CPUs per task\n")
+        cat("#SBATCH --cpus-per-task=4\n")
 
-        cat("# Memory requirements\n")
-        cat("#$ -l h_vmem=15G -pe threaded 4\n")
+        cat("# Memory per CPU\n")
+        cat("#SBATCH --mem-per-cpu=1G\n")
+
 
         if(!is.null(email)){
                 cat("# Send email when job is submitted and completed\n")
-                cat("#$ -m e\n")
-                cat("#$ -M", email, "\n")
+                cat(paste0("#SBATCH --mail-user=", email, "\n"))
+                cat(paste0("#SBATCH --mail-type=FAIL", "\n"))
         }
 
         cat("\n")
 
-        cat("module load bowtie2\n")
-        cat("module load samtools\n")
-        cat("module load fastx-toolkit/0.0.14-goolf-1.7.20\n")
+        cat("cd $PWD\n")
 
-        cat("\n")
+        cat("container=/data/vrc_his/douek_lab/premise-bioinfo/containers/phipseq/phipstat-pipeline.sif\n")
 
         # Trim using fastx trimmer
-        cat("gunzip -c", files[1],  "| fastx_trimmer -f 21 -o", file.path(output_trimmed_dir, d, read1))
+        cat('singularity exec --bind "$PWD" $container gunzip -c', files[1],  '| singularity exec --bind "$PWD" $container fastx_trimmer -f 21 -o', 
+            file.path(output_trimmed_dir, d, tools::file_path_sans_ext(read1)))
         cat("\n")
-        cat("gunzip -c", files[2],  "| fastx_trimmer -f 28 -o", file.path(output_trimmed_dir, d, read2))
+        cat('singularity exec --bind "$PWD" $container gunzip -c', files[2],  '| singularity exec --bind "$PWD" $container fastx_trimmer -f 28 -o', 
+            file.path(output_trimmed_dir, d, tools::file_path_sans_ext(read2)))
 
         cat("\n\n")
 
@@ -65,10 +66,10 @@ exec_trim_bowtie <- function(type, d, files, read1, read2, output_count_dir, out
         }
 
         # Run bowtie2 and samtools
-        cat("bowtie2 -p 4 -x", bowtie_index, "-1", 
-                   file.path(output_trimmed_dir, d, read1), "-2", 
-                   file.path(output_trimmed_dir, d, read2),
-                   "| samtools sort -O BAM | samtools depth -aa -m 100000000 -",
+        cat('singularity exec --bind "$PWD" $container bowtie2 -p 4 -x', bowtie_index, "-1", 
+                   file.path(output_trimmed_dir, d, tools::file_path_sans_ext(read1)), "-2", 
+                   file.path(output_trimmed_dir, d, tools::file_path_sans_ext(read2)),
+                   '| singularity exec --bind "$PWD" $container samtools sort -O BAM | singularity exec --bind "$PWD" $container samtools depth -aa -m 100000000 -',
                    "| awk 'BEGIN {OFS=\"\\t\"} {counts[$1] = ($3 < counts[$1]) ? counts[$1] : $3} END {for (c in counts) {print c, counts[c]}}'",    
                    "| sort -k 1",
                    ">>", file.path(output_count_dir, count_file), "\n")
@@ -76,7 +77,7 @@ exec_trim_bowtie <- function(type, d, files, read1, read2, output_count_dir, out
         sink()
 
         cat("Submitting the job ... ")
-        system(paste0("qsub ", submit_file))
+        system(paste0("sbatch ", submit_file))
         cat("\n")
 }
 
