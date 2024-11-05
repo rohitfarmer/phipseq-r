@@ -50,7 +50,7 @@ run_edger <- function(sample_input_dat){
 }
 
 # Create output directories
-output_edger <- params$output_edger
+output_edger <- params$output_edger_dir
 if(dir.exists(output_edger)){
         cat("EdgeR results directory already exists, output maybe over written.: ", output_edger, "\n")
         user_input("Press [enter] to continue or [ctrl+z] to quit.")
