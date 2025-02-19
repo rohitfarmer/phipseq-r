@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 if (!require('yaml')) install.packages('yaml'); library('yaml')
-if(!require('edgeR')) BiocManager::install("edgeR"); library("edgeR")
+if (!require('edgeR')) BiocManager::install("edgeR"); library("edgeR")
 
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args) == 0){
@@ -11,7 +11,7 @@ if(length(args) == 0){
 }
 
 params <- read_yaml(file.path(args[1]))
-#params <- read_yaml(file.path("meta", "evd68-sky", "sample.yaml")) # For testing keep it commented in production
+#params <- read_yaml(file.path("meta", "evd68-full", "sample_library.yaml")) # For testing keep it commented in production
 
 user_input <- function(prompt) {
   if (interactive()) {
@@ -38,8 +38,9 @@ run_edger <- function(sample_input_dat){
         }else if(sum(group == "Sample") == 1){
                 cat("Running EdgeR with a single replicate.\n")
                 dge <- DGEList(counts = sample_input_dat, group = group)
+                dge <- calcNormFactors(dge)
                 dge$common.dispersion <- 0.1  
-                dge <- estimateDisp(dge)
+                #dge <- estimateDisp(dge)
                 design <- model.matrix(~ group)
                 fit <- glmFit(dge, design)
                 lrt <- glmLRT(fit, coef = 2)  # coef=2 specifies the treatment vs control comparison
@@ -76,30 +77,35 @@ for(i in 1:length(sample_info_split)){
         subject_id <- unique(sample_info_split[[i]]$subject_id)
         visit <- unique(sample_info_split[[i]]$visit)
  
-        cat("Subject:", subject_id, "Visit:", visit, "\n")
+        cat(i, "Subject:", subject_id, "Visit:", visit, "\n")
 
         dat <- sample_info_split[[i]]
         sample_input_dat <- data.frame()
         for(j in 1:nrow(dat)){
                 passed_count_file <- file.path(output_passed_count_dir, paste0(dat[j, "sample_id"], "_counts.tsv"))
-                temp_dat <- read.table(passed_count_file, header = TRUE, sep = "\t",
-                        check.names = FALSE)
-                if(j == 1){
-                        sample_input_dat <- temp_dat
-                }else{
-                        sample_input_dat <- merge(sample_input_dat, temp_dat, by = "id")
+                if(file.exists(passed_count_file)){
+                        temp_dat <- read.table(passed_count_file, header = TRUE, sep = "\t",
+                                check.names = FALSE)
+                        if(j == 1 |  nrow(sample_input_dat) == 0){
+                                sample_input_dat <- temp_dat
+                        }else{
+                                sample_input_dat <- merge(sample_input_dat, temp_dat, by = "id")
+                        }
                 }
         }
-        sample_input_dat <- merge(sample_input_dat, input_count, by = "id") 
-        rownames(sample_input_dat) <- sample_input_dat$id
-        sample_input_dat <- as.matrix(sample_input_dat[,2:ncol(sample_input_dat)])
-        
-        edger_res <- run_edger(sample_input_dat)
-        edger_res <- cbind("id" = rownames(edger_res), data.frame(edger_res))
 
-        output_file_name <- file.path(output_edger, paste0(subject_id, "_", visit, "_edger.tsv"))
-        write.table(edger_res, file = output_file_name, 
-                    sep = "\t", row.names = FALSE, quote = FALSE)
+        if(ncol(sample_input_dat >= 1)){
+                sample_input_dat <- merge(sample_input_dat, input_count, by = "id") 
+                rownames(sample_input_dat) <- sample_input_dat$id
+                sample_input_dat <- as.matrix(sample_input_dat[,2:ncol(sample_input_dat)])
+                
+                edger_res <- run_edger(sample_input_dat)
+                edger_res <- cbind("id" = rownames(edger_res), data.frame(edger_res))
+
+                output_file_name <- file.path(output_edger, paste0(subject_id, "_", visit, "_edger.tsv"))
+                write.table(edger_res, file = output_file_name, 
+                            sep = "\t", row.names = FALSE, quote = FALSE)
+        }
 }
 
 
